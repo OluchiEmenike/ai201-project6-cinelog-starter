@@ -8,8 +8,8 @@
 **How I verified:** Project-wide Python search found no remaining `save_to_watchlist` references. The service and route imports passed a smoke test, and the existing collection tests passed (4 tests).
 
 ## Comment 2 — Deduplication
-**What I did:**
-**How I verified:**
+**What I did:** Followed `add_to_collection()` in `services/collection_service.py`: it checks for an existing entry matching both `user_id` and `film_id`, and raises `AlreadyInCollectionError` instead of creating a duplicate. `add_to_watchlist()` now uses the same lookup pattern and raises `AlreadyOnWatchlistError` when a match exists; the route returns HTTP 409 for that conflict.
+**How I verified:** Using an in-memory database, confirmed the first POST returns 201, a repeated POST returns 409, and exactly one watchlist entry is stored. The existing collection test suite also passed (4 tests).
 
 ## Comment 3 — Missing test
 **What I did:**
