@@ -26,9 +26,9 @@ I asked AI to act as a devil's advocate on my Comment 4 and 5 drafts: “What co
 **Engagement with reviewer's point:** I agree with the maintainer that users commonly want to see what they added recently. Alphabetical order can help locate a title in a long list, but it hides recency and gives new additions no priority. Newest-first date order directly addresses that use case. A counterargument is that the newest addition is not necessarily the next film the user intends to watch; a FIFO or manually ordered queue could better express viewing priority. Given the reviewer's stated preference and the current lack of manual ordering, newest-first is a useful, predictable default. Verified with a test that sets distinct addition dates and asserts the newest film is first.
 
 ## Comment 6 — Rebase
-**What conflicted:**
-**How I resolved it:**
-**How I verified no conflict remains:**
+**What conflicted:** Rebasing the watchlist model commit onto `origin/main` conflicted on `WatchlistEntry.film_id`: the watchlist branch used an integer foreign key, while main had migrated `Film.id` and the collection foreign key to UUID strings.
+**How I resolved it:** Kept main's UUID-compatible `db.String(36)` foreign key for `WatchlistEntry.film_id` and retained the watchlist index. After the rebase, updated the watchlist service documentation and route request example to describe UUID film IDs, and changed the missing-film test input to a valid, nonexistent UUID. Committed these follow-up UUID updates separately.
+**How I verified no conflict remains:** `git rebase origin/main` completed successfully; searched the watchlist model, service, route, and test for conflict markers and stale integer film-ID references; confirmed `git log --merges origin/main..HEAD` returns no merge commits; and ran the test suite successfully.
 
 ## PR Description
 The watchlist feature lets users save films they plan to watch and retrieve their list. New entries are marked public by default to support community discovery and sharing; this favors visibility over the privacy a private-by-default policy would offer. At present, the visibility field is returned as metadata and is not enforced by the read route, which returns a user's entries without checking `public`. The add endpoint does not offer a per-entry visibility option.
