@@ -1,11 +1,13 @@
 """Tests for the watchlist service."""
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from app import create_app, db
-from models import User
+from models import Film, User, WatchlistEntry
 from services.collection_service import FilmNotFoundError
-from services.watchlist_service import add_to_watchlist
+from services.watchlist_service import add_to_watchlist, get_watchlist
 
 
 @pytest.fixture
@@ -39,3 +41,31 @@ def test_add_to_watchlist_nonexistent_film_raises(app, sample_user):
 
         with pytest.raises(FilmNotFoundError):
             add_to_watchlist(user_id=sample_user, film_id=fake_film_id)
+
+
+def test_get_watchlist_returns_newest_first(app, sample_user):
+    """The most recently added film should appear first in the watchlist."""
+    with app.app_context():
+        earlier_film = Film(title="Alien", year=1979, genre="Horror")
+        later_film = Film(title="Blade Runner", year=1982, genre="Sci-Fi")
+        db.session.add_all([earlier_film, later_film])
+        db.session.commit()
+
+        earlier = datetime.now(timezone.utc) - timedelta(days=5)
+        later = datetime.now(timezone.utc)
+        db.session.add_all([
+            WatchlistEntry(
+                user_id=sample_user, film_id=earlier_film.id, date_added=earlier
+            ),
+            WatchlistEntry(
+                user_id=sample_user, film_id=later_film.id, date_added=later
+            ),
+        ])
+        db.session.commit()
+
+        watchlist = get_watchlist(sample_user)
+
+        assert [film["title"] for film in watchlist] == [
+            "Blade Runner",
+            "Alien",
+        ]
