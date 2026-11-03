@@ -12,8 +12,8 @@
 **How I verified:** Using an in-memory database, confirmed the first POST returns 201, a repeated POST returns 409, and exactly one watchlist entry is stored. The existing collection test suite also passed (4 tests).
 
 ## Comment 3 — Missing test
-**What I did:**
-**How I verified:**
+**What I did:** Added `test_add_to_watchlist_nonexistent_film_raises` in `tests/test_watchlist.py`, using the in-memory app and sample-user fixture pattern from `tests/test_collection.py`.
+**How I verified:** Ran `pytest tests/test_watchlist.py -v`; the new test passed.
 
 ## Comment 4 — Default visibility
 **My position:**
